@@ -1,8 +1,11 @@
+package Swing;
+
 import javax.sound.midi.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 import java.util.ArrayList;
 
 /**
@@ -22,7 +25,7 @@ public class BeatBox {
     int[] instruments = {35,42,46,38,49,39,50,60,70,72,64,56,58,47,67,63};
 
     public void buildGUI(){
-        theFrame = new JFrame("SuperUltraMega BeatBox");
+        theFrame = new JFrame("SuperUltraMega Swing.BeatBox");
         theFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         BorderLayout layout = new BorderLayout();
         JPanel background = new JPanel(layout);
@@ -46,6 +49,18 @@ public class BeatBox {
         JButton downTempo = new JButton("Tempo down");
         downTempo.addActionListener(new MyDownTempoListener());
         buttonBox.add(downTempo);
+
+        JButton serialize = new JButton("Serialize");
+        serialize.addActionListener(new MySaveListener());
+        buttonBox.add(serialize);
+
+        JButton open = new JButton("Open");
+        open.addActionListener(new MyReadListener());
+        buttonBox.add(open);
+
+        JButton clear = new JButton("Clear");
+        clear.addActionListener(new MyClearListener());
+        buttonBox.add(clear);
 
         Box nameBox = new Box(BoxLayout.Y_AXIS);
         for (int i = 0; i<16;i++) {
@@ -174,6 +189,64 @@ public class BeatBox {
             e.printStackTrace();
         }
         return event;
+    }
+
+    public class MySaveListener implements ActionListener{
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            boolean[] checkBoxState = new boolean[256];
+
+            for (int i = 0; i<256;i++) {
+                JCheckBox check = (JCheckBox) checkbotList.get(i);
+                if (check.isSelected()) {
+                    checkBoxState[i] = true;
+                }
+            }
+
+            try {
+                JFileChooser chooser = new JFileChooser();
+                chooser.showSaveDialog(theFrame);
+                ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(chooser.getSelectedFile()));
+                os.writeObject(checkBoxState);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
+    }
+
+    public class MyReadListener implements ActionListener{
+        boolean[] checkboxstate = null;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                JFileChooser chooser = new JFileChooser();
+                chooser.showOpenDialog(theFrame);
+                ObjectInputStream os = new ObjectInputStream(new FileInputStream(chooser.getSelectedFile()));
+                checkboxstate = (boolean[]) os.readObject();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            } catch (ClassNotFoundException e1) {
+                e1.printStackTrace();
+            }
+            for (int i = 0; i<256;i++) {
+                JCheckBox checkBox = checkbotList.get(i);
+                if (checkboxstate[i]) {
+                    checkBox.setSelected(true);
+                } else checkBox.setSelected(false);
+            }
+            sequencer.stop();
+            buildTrackAndStart();
+        }
+
+    }
+
+    public class MyClearListener implements ActionListener{
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            for (int i = 0; i<256;i++) {
+                checkbotList.get(i).setSelected(false);
+            }
+        }
     }
 }
 

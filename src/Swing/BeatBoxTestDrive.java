@@ -1,3 +1,7 @@
+package Swing;
+
+import Swing.BeatBox;
+
 /**
  * Created by SuperDenissio on 30.06.2017.
  */
